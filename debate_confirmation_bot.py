@@ -58,6 +58,12 @@ INVALID_COLORS = {
     "OTHER": {"red": 1.00, "green": 0.95, "blue": 0.60},
 }
 
+CONFIRMED_COLOR = {
+    "red": 0.71,
+    "green": 0.84,
+    "blue": 0.66,
+}
+
 COLOR_TOLERANCE = 0.035
 
 INVALID_REASONS = {
@@ -349,6 +355,21 @@ def save_response(match: dict, status: str):
     )
 
 
+def mark_confirmation(match: dict):
+    """Color the cell immediately left of the username light green."""
+    ws = match["worksheet"]
+    row = match["row"]
+    username_col = match["tag_col"]
+
+    if username_col <= 1:
+        raise ValueError("Username column has no cell to its left")
+
+    indicator_col = username_col - 1
+    cell = gspread.utils.rowcol_to_a1(row, indicator_col)
+
+    ws.format(cell, {"backgroundColor": CONFIRMED_COLOR})
+
+
 def iter_registered_participants(configured=None, invalid_by_sheet=None):
     """Yield valid registered participants who have not yet answered."""
     if configured is None:
@@ -557,6 +578,14 @@ async def handle_confirmation(
     try:
         save_chat_id(match, user.id)
         save_response(match, status)
+
+        if status == STATUS_YES:
+            try:
+                mark_confirmation(match)
+            except Exception:
+                logger.exception(
+                    "Response saved, but could not color confirmation cell"
+                )
     except Exception:
         logger.exception("Could not save participant response")
         await query.edit_message_text(
