@@ -64,6 +64,12 @@ CONFIRMED_COLOR = {
     "blue": 0.66,
 }
 
+REFUSED_COLOR = {
+    "red": 0.96,
+    "green": 0.70,
+    "blue": 0.70,
+}
+
 COLOR_TOLERANCE = 0.035
 
 INVALID_REASONS = {
@@ -355,8 +361,8 @@ def save_response(match: dict, status: str):
     )
 
 
-def mark_confirmation(match: dict):
-    """Color the cell immediately left of the username light green."""
+def mark_confirmation(match: dict, color: dict):
+    """Color the cell immediately left of the username."""
     ws = match["worksheet"]
     row = match["row"]
     username_col = match["tag_col"]
@@ -364,10 +370,8 @@ def mark_confirmation(match: dict):
     if username_col <= 1:
         raise ValueError("Username column has no cell to its left")
 
-    indicator_col = username_col - 1
-    cell = gspread.utils.rowcol_to_a1(row, indicator_col)
-
-    ws.format(cell, {"backgroundColor": CONFIRMED_COLOR})
+    cell = gspread.utils.rowcol_to_a1(row, username_col - 1)
+    ws.format(cell, {"backgroundColor": color})
 
 
 def iter_registered_participants(configured=None, invalid_by_sheet=None):
@@ -579,14 +583,20 @@ async def handle_confirmation(
         save_chat_id(match, user.id)
         save_response(match, status)
 
-        if status == STATUS_YES:
-            try:
-                mark_confirmation(match)
-            except Exception:
-                logger.exception(
-                    "Response saved, but could not color confirmation cell"
-                )
+        try:
+            if status == STATUS_YES:
+                mark_confirmation(match, CONFIRMED_COLOR)
+            elif status == STATUS_NO:
+                mark_confirmation(match, REFUSED_COLOR)
+        except Exception:
+            logger.exception(
+                "Response saved, but could not color confirmation cell"
+            )
+
     except Exception:
+        logger.exception("Failed to save confirmation response")
+        # Тут залиш свій наявний код обробки помилки
+        # збереження відповіді без змін.
         logger.exception("Could not save participant response")
         await query.edit_message_text(
             "Не вдалося зберегти відповідь. Спробуй ще раз або напиши організаторам."
