@@ -1,0 +1,4 @@
+python-telegram-bot>=21,<23
+gspread>=6,<7
+google-auth-oauthlib>=1,<2
+python-dotenv>=1,<2

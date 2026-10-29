@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Google OAuth credentials and tokens
+credentials.json
+token.json
+client_secret*.json
+authorized_user*.json
+
+# Telegram / Telethon session files (may contain login credentials)
+*.session
+*.session-journal
+
+# Local diagnostics / generated files
+diag*.py
+diagnostics*.py
+qr.png
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
